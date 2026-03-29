@@ -35,12 +35,13 @@ def send_outreach_email(self, outreach_id: str):
             html_body += f"\n\n{tracking_pixel}"
 
             # Send via email provider (Phase 07 full implementation)
-            # from app.services.email_provider import send_email
-            # success = send_email(
-            #     to_email=contact.email,
-            #     subject=outreach.subject,
-            #     html_body=html_body,
-            # )
+            from app.services.email_provider import email_provider
+            if contact.email:
+                success = email_provider.send_email(
+                    to_email=contact.email,
+                    subject=outreach.subject,
+                    html_body=html_body,
+                )
 
             # For now, mark as sent (simulate)
             outreach.status = OutreachStatus.sent
@@ -75,8 +76,8 @@ def send_test_email(outreach_id: str, to_email: str):
             return {"error": "Outreach not found"}
 
         # Send test email (Phase 07 full implementation)
-        # from app.services.email_provider import send_email
-        # send_email(to_email=to_email, subject=f"[TEST] {outreach.subject}", html_body=outreach.body)
+        from app.services.email_provider import email_provider
+        email_provider.send_email(to_email=to_email, subject=f"[TEST] {outreach.subject}", html_body=outreach.body)
 
         return {"outreach_id": outreach_id, "to": to_email, "status": "test_sent"}
 

@@ -13,7 +13,7 @@ def strategy_agent(state: AgentState) -> dict:
         from langchain_google_genai import ChatGoogleGenerativeAI
 
         llm = ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash",
+            model="gemini-1.5-flash-latest",
             temperature=0.7,
             api_key=os.getenv("GOOGLE_API_KEY"),
         )

@@ -23,6 +23,8 @@ export default function CampaignDetailPage() {
     const queryClient = useQueryClient()
     const [activeTab, setActiveTab] = useState('overview')
     const [selectedEmail, setSelectedEmail] = useState(null)
+    const [isSendModalOpen, setIsSendModalOpen] = useState(false)
+    const [testEmail, setTestEmail] = useState('')
 
     const { data: campaign, isLoading: campaignLoading } = useQuery({
         queryKey: ['campaign', id],
@@ -51,6 +53,24 @@ export default function CampaignDetailPage() {
             toast.success(`${res.data.queued} emails queued for sending!`)
             queryClient.invalidateQueries(['campaign-emails', id])
         },
+    })
+
+    const sendTestMutation = useMutation({
+        mutationFn: () => campaignAPI.sendTest(id, testEmail),
+        onSuccess: () => {
+            toast.success('Test email queued!')
+            setTestEmail('')
+        },
+        onError: (err) => toast.error(err.response?.data?.detail || 'Failed to send test email')
+    })
+
+    const uploadCSVMutation = useMutation({
+        mutationFn: (file) => campaignAPI.uploadCSV(id, file),
+        onSuccess: (res) => {
+            toast.success(`Successfully imported ${res.data.imported} emails!`)
+            setIsSendModalOpen(false)
+        },
+        onError: (err) => toast.error(err.response?.data?.detail || 'Failed to upload CSV')
     })
 
     if (campaignLoading) {
@@ -105,12 +125,11 @@ export default function CampaignDetailPage() {
                     {campaign?.status === 'active' && (
                         <>
                             <button
-                                onClick={() => sendMutation.mutate()}
-                                disabled={sendMutation.isPending}
+                                onClick={() => setIsSendModalOpen(true)}
                                 className="btn-primary flex items-center gap-2"
                             >
                                 <Send className="w-4 h-4" />
-                                Send All Emails
+                                Send Outreach
                             </button>
                             <button onClick={() => generateMutation.mutate()} className="btn-secondary flex items-center gap-2">
                                 <RefreshCw className="w-4 h-4" />
@@ -278,6 +297,85 @@ export default function CampaignDetailPage() {
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Send Options Modal */}
+            {isSendModalOpen && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="glass-card max-w-md w-full">
+                        <div className="p-6 border-b border-white/5 flex items-center justify-between">
+                            <h3 className="font-semibold text-white flex items-center gap-2">
+                                <Send className="w-4 h-4 text-primary-400" />
+                                Dispatch Outreach
+                            </h3>
+                            <button onClick={() => setIsSendModalOpen(false)} className="text-gray-400 hover:text-white">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <button
+                                onClick={() => {
+                                    sendMutation.mutate();
+                                    setIsSendModalOpen(false);
+                                }}
+                                disabled={sendMutation.isPending}
+                                className="w-full flex items-center gap-4 p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5 text-left"
+                            >
+                                <div className="w-10 h-10 rounded-lg bg-primary-500/20 flex items-center justify-center shrink-0">
+                                    <Sparkles className="w-5 h-5 text-primary-400" />
+                                </div>
+                                <div>
+                                    <p className="font-medium text-white">Send to AI-Discovered Partners</p>
+                                    <p className="text-xs text-gray-400 mt-1">Dispatch emails to {campaign?.outreach_count || 0} sponsors found by the AI agent.</p>
+                                </div>
+                            </button>
+
+                            <button className="w-full flex items-center gap-4 p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5 text-left cursor-pointer relative overflow-hidden group">
+                                <input
+                                    type="file"
+                                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                    accept=".csv"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) uploadCSVMutation.mutate(file);
+                                    }}
+                                />
+                                <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
+                                    {uploadCSVMutation.isPending ? <Loader2 className="w-5 h-5 text-emerald-400 animate-spin" /> : <Users className="w-5 h-5 text-emerald-400" />}
+                                </div>
+                                <div>
+                                    <p className="font-medium text-white group-hover:text-emerald-400 transition-colors">
+                                        {uploadCSVMutation.isPending ? 'Uploading...' : 'Upload Custom CSV List'}
+                                    </p>
+                                    <p className="text-xs text-gray-400 mt-1">Upload a CSV containing explicit names and emails.</p>
+                                </div>
+                            </button>
+
+                            <div className="border border-white/5 rounded-xl p-4 bg-white/5">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Mail className="w-4 h-4 text-blue-400" />
+                                    <p className="font-medium text-white text-sm">Send Test Email (Manual)</p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="email"
+                                        value={testEmail}
+                                        onChange={(e) => setTestEmail(e.target.value)}
+                                        placeholder="name@company.com"
+                                        className="input-field text-sm"
+                                    />
+                                    <button
+                                        onClick={() => sendTestMutation.mutate()}
+                                        disabled={sendTestMutation.isPending || !testEmail}
+                                        className="btn-secondary px-4 text-sm shrink-0 flex items-center gap-2"
+                                    >
+                                        {sendTestMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                                        Blast
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

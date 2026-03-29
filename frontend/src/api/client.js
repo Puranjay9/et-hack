@@ -59,6 +59,14 @@ export const campaignAPI = {
     delete: (id) => api.delete(`/campaigns/${id}`),
     generateOutreach: (id) => api.post(`/campaigns/${id}/generate-outreach`),
     regenerateEmails: (id) => api.post(`/campaigns/${id}/email/regenerate`),
+    uploadCSV: (id, file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return api.post(`/campaigns/${id}/upload-csv`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+    },
+    sendTest: (id, email) => api.post(`/campaigns/${id}/test-email`, { to_email: email }),
 }
 
 // ============== Companies ==============

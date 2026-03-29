@@ -1,6 +1,8 @@
 """Campaign CRUD routes + outreach generation trigger."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+import csv
+import io
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from typing import List
@@ -16,6 +18,7 @@ from app.schemas.campaign import (
     CampaignResponse,
     CampaignDetailResponse,
 )
+from app.schemas.outreach import TestEmailRequest
 
 router = APIRouter(prefix="/campaigns", tags=["campaigns"])
 
@@ -169,3 +172,50 @@ async def regenerate_emails(
     await db.flush()
 
     return {"task_id": task.id, "status": "processing"}
+
+
+@router.post("/{campaign_id}/upload-csv", status_code=status.HTTP_202_ACCEPTED)
+async def upload_csv(
+    campaign_id: UUID,
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+    user_id: str = Depends(get_current_user_id),
+):
+    result = await db.execute(select(Campaign).where(Campaign.id == campaign_id, Campaign.user_id == user_id))
+    if not result.scalar_one_or_none():
+        raise HTTPException(status_code=404, detail="Campaign not found")
+
+    content = await file.read()
+    decoded = content.decode('utf-8')
+    reader = csv.DictReader(io.StringIO(decoded))
+    
+    emails = []
+    for row in reader:
+        email = row.get('email') or row.get('Email') or row.get('EMAIL')
+        if email:
+            emails.append(email)
+            
+    return {"status": "success", "imported": len(emails), "emails": emails[:5]}
+
+
+@router.post("/{campaign_id}/test-email", status_code=status.HTTP_202_ACCEPTED)
+async def test_campaign_email(
+    campaign_id: UUID,
+    payload: TestEmailRequest,
+    db: AsyncSession = Depends(get_db),
+    user_id: str = Depends(get_current_user_id),
+):
+    result = await db.execute(select(Campaign).where(Campaign.id == campaign_id, Campaign.user_id == user_id))
+    if not result.scalar_one_or_none():
+        raise HTTPException(status_code=404, detail="Campaign not found")
+
+    outreach_result = await db.execute(select(Outreach).where(Outreach.campaign_id == campaign_id).limit(1))
+    outreach = outreach_result.scalar_one_or_none()
+    
+    if not outreach:
+        raise HTTPException(status_code=400, detail="No emails generated yet to test.")
+
+    from app.tasks.email_tasks import send_test_email as send_test_task
+    task = send_test_task.delay(str(outreach.id), payload.to_email)
+    
+    return {"task_id": task.id, "status": "queued"}
