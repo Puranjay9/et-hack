@@ -27,9 +27,7 @@ redis==5.1.1
 # ============== AI / LangGraph ==============
 langgraph==0.2.53
 langchain==0.3.7
-langchain-openai==0.2.9
-langchain-community==0.3.7
-openai==1.54.3
+langchain-google-genai==2.0.4
 
 # ============== Email ==============
 sendgrid==6.11.0

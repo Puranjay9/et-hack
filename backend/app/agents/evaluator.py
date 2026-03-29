@@ -14,12 +14,12 @@ def evaluator_agent(state: AgentState) -> dict:
     final_emails = state.get("final_emails", [])
 
     try:
-        from langchain_openai import ChatOpenAI
+        from langchain_google_genai import ChatGoogleGenerativeAI
 
-        llm = ChatOpenAI(
-            model="gpt-4o-mini",
+        llm = ChatGoogleGenerativeAI(
+            model="gemini-1.5-flash",
             temperature=0.2,
-            api_key=os.getenv("OPENAI_API_KEY"),
+            api_key=os.getenv("GOOGLE_API_KEY"),
         )
 
         eval_prompt = f"""You are an expert email marketing evaluator. Score this sponsorship outreach email on 5 dimensions.

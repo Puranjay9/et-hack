@@ -57,12 +57,12 @@ def discovery_agent(state: AgentState) -> dict:
         # Score and deduplicate sponsors using LLM
         if sponsors_found:
             try:
-                from langchain_openai import ChatOpenAI
+                from langchain_google_genai import ChatGoogleGenerativeAI
 
-                llm = ChatOpenAI(
-                    model="gpt-4o-mini",
+                llm = ChatGoogleGenerativeAI(
+                    model="gemini-1.5-flash",
                     temperature=0.3,
-                    api_key=os.getenv("OPENAI_API_KEY"),
+                    api_key=os.getenv("GOOGLE_API_KEY"),
                 )
 
                 scoring_prompt = f"""Score these potential sponsors for relevance to our campaign.

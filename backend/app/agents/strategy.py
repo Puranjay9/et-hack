@@ -10,12 +10,12 @@ def strategy_agent(state: AgentState) -> dict:
     brand_context = state.get("brand_context", {})
 
     try:
-        from langchain_openai import ChatOpenAI
+        from langchain_google_genai import ChatGoogleGenerativeAI
 
-        llm = ChatOpenAI(
-            model="gpt-4o",
+        llm = ChatGoogleGenerativeAI(
+            model="gemini-1.5-flash",
             temperature=0.7,
-            api_key=os.getenv("OPENAI_API_KEY"),
+            api_key=os.getenv("GOOGLE_API_KEY"),
         )
 
         system_prompt = """You are an expert sponsorship strategist for college events and organizations.

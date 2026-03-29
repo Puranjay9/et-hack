@@ -15,12 +15,12 @@ def email_generation_agent(state: AgentState) -> dict:
     retry_count = state.get("retry_count", 0)
 
     try:
-        from langchain_openai import ChatOpenAI
+        from langchain_google_genai import ChatGoogleGenerativeAI
 
-        llm = ChatOpenAI(
-            model="gpt-4o",
+        llm = ChatGoogleGenerativeAI(
+            model="gemini-1.5-flash",
             temperature=0.8,
-            api_key=os.getenv("OPENAI_API_KEY"),
+            api_key=os.getenv("GOOGLE_API_KEY"),
         )
 
         # Build system prompt
