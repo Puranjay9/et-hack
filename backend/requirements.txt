@@ -1,0 +1,42 @@
+# ============== Core ==============
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+pydantic==2.9.2
+pydantic-settings==2.5.2
+
+# ============== Database ==============
+sqlalchemy[asyncio]==2.0.35
+asyncpg==0.29.0
+psycopg2-binary==2.9.9
+alembic==1.13.2
+pgvector==0.3.5
+
+# ============== Auth ==============
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==3.2.2
+python-multipart==0.0.9
+
+# ============== Celery ==============
+celery[rabbitmq]==5.4.0
+flower==2.0.1
+
+# ============== Redis ==============
+redis==5.1.1
+
+# ============== AI / LangGraph ==============
+langgraph==0.2.53
+langchain==0.3.7
+langchain-openai==0.2.9
+langchain-community==0.3.7
+openai==1.54.3
+
+# ============== Email ==============
+sendgrid==6.11.0
+
+# ============== HTTP ==============
+httpx==0.27.2
+
+# ============== Utilities ==============
+python-dotenv==1.0.1
+slowapi==0.1.9
